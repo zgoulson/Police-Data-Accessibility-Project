@@ -1,29 +1,34 @@
-from flask import Flask
 import os
 from dotenv import load_dotenv
+from slackeventsapi import SlackEventAdapter
+from slack import WebClient
 load_dotenv()
 
+# Create a SlackClient for your bot to use for Web API requests
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
+slack_client = WebClient(SLACK_BOT_TOKEN)
 
 # Our app's Slack Event Adapter for receiving actions via the Events API
-slack_signing_secret = os.environ["SLACK_SIGNING_SECRET"]
-slack_events_adapter = SlackEventAdapter(slack_signing_secret, "/slack/events")
+SLACK_SIGNING_SECRET = os.getenv('SLACK_SIGNING_SECRET')
+slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/slack/events")
 
-app = Flask(__name__)
+# Example reaction emoji echo
+@slack_events_adapter.on("reaction_added")
+def reaction_added(event_data):
+    event = event_data["event"]
+    emoji = event["reaction"]
+    if emoji == 'thread':
+        channel = event["item"]["channel"]
+        message_author = event["item_user"]
+        text = ":%s:" % emoji
+        slack_client.chat_postMessage(channel=message_author, text=text)
+    print(event)
 
-@app.route('/', methods=['POST'])
-def verify():
-    data = request.json
-    if data['event']['type'] == 'app_mention':
-        user_text = data['event']['text']
-        user = data['event']['user']
-        webhook_url = '***********Your webhook url******************'
-        slack_data = { "text": 'How can I help you ?' }
-        response = requests.post(
-        webhook_url, data=json.dumps(slack_data),
-        headers={'Content-Type': 'application/json'}
-        )
-    return('', 204)
+# Error events
+@slack_events_adapter.on("error")
+def error_handler(err):
+    print("ERROR: " + str(err))
 
-if __name__ == '__main__':
-app.run(debug=True,port=3000)
+# Once we have our event listeners configured, we can start the
+# Flask server with the default `/events` endpoint on port 3000
+slack_events_adapter.start(port=3000)
