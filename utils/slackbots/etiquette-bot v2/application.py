@@ -1,5 +1,5 @@
 '''
-Slack Channel Suggestions Bot
+Slack Etiquette Bot
 
 DM the author of a message that has been tagged with the :thread: emoji (likely by a Slack Mod).
 
@@ -11,15 +11,21 @@ Features to add:
     - Track message ids that have been moderated with a :thread: reaction
         - Check with Security Oversight on this
     - Eventually link to internal Slack documentation
-
 '''
-
 import os
 import datetime
+import sqlite3
 from dotenv import load_dotenv
+from flask import Flask
 from slackeventsapi import SlackEventAdapter
 from slack import WebClient
 load_dotenv()
+
+app = Flask(__name__)
+
+@app.route("/")
+def hello():
+  return "Hello there!"
 
 # SlackClient for your bot to use for Web API requests
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
@@ -32,8 +38,11 @@ slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/slack/events")
 # this is currently Zach, but can be altered for any future admin or admin group
 slack_admin = 'U014A5XS4JK'
 
+
+
 # Example reaction emoji echo
 @slack_events_adapter.on("reaction_added")
+
 def reaction_added(event_data):
     event = event_data["event"]
     emoji = event["reaction"]
