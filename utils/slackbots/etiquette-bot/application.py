@@ -15,11 +15,11 @@ Features to add:
 '''
 
 import os
-import datetime
 from dotenv import load_dotenv
 from slackeventsapi import SlackEventAdapter
 from slack import WebClient
 load_dotenv()
+from home import get_app_home_block
 
 # SlackClient for your bot to use for Web API requests
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
@@ -32,7 +32,7 @@ slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/slack/events")
 # this is currently Zach, but can be altered for any future admin or admin group
 slack_admin = 'U014A5XS4JK'
 
-# Example reaction emoji echo
+# Reaction added events
 @slack_events_adapter.on("reaction_added")
 def reaction_added(event_data):
     event = event_data["event"]
@@ -50,9 +50,18 @@ def reaction_added(event_data):
                 f'https://policeaccessibility.slack.com/archives/{channel}/p{message_id}')
         slack_client.chat_postMessage(channel=message_author, text=text)
         # for testing purposes. Sends duplicate message to Zach
-        slack_client.chat_postMessage(
-            channel=moderator, text=f'original author was <@{message_author}>' + text)
+        slack_client.chat_postMessage(channel=slack_admin, text=f'original author was <@{message_author}>' + text)
     print(event)  # for testing purposes
+
+# App Home Opened events
+@slack_events_adapter.on("app_home_opened")
+def app_home_opened(event_data):
+    event = event_data["event"]
+    if ('tab' in event) and (event['tab'] == 'home'):
+        user = event['user']
+        blocks = get_app_home_block(user=user, slack_admin=slack_admin)
+        views = {"type": "home", "blocks": blocks}
+        slack_client.views_publish(user_id=user, view=views)
 
 # Error events
 @slack_events_adapter.on("error")

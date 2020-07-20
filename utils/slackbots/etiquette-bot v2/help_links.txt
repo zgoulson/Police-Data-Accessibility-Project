@@ -1,0 +1,7 @@
+https://flask.palletsprojects.com/en/1.1.x/patterns/sqlite3/
+https://stackabuse.com/a-sqlite-tutorial-with-python/
+https://www.youtube.com/watch?v=pd-0G0MigUA
+https://github.com/docmarionum1/slack-archive-bot
+https://flask.palletsprojects.com/en/1.1.x/tutorial/database/
+https://github.com/pallets/flask/tree/1.1.2/examples/tutorial/flaskr
+https://www.sqlitetutorial.net/sqlite-python/create-tables/
